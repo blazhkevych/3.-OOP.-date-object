@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Calendar</title>
+	<style>
+		table {
+			border-collapse: collapse;
+			margin: 0 auto;
+		}
+
+		th,
+		td {
+			border: 1px solid gray;
+			padding: 10px;
+			text-align: center;
+		}
+
+		th {
+			background-color: yellow;
+			font-size: 20px;
+		}
+
+		td.weekday {
+			background-color: yellow;
+			color: black;
+			font-weight: bold;
+		}
+
+		td.weekend {
+			background-color: red;
+			color: black;
+			font-weight: bold;
+		}
+
+		td.empty {
+			background-color: transparent;
+		}
+
+		td.date {
+			background-color: transparent;
+			color: white;
+		}
+
+		td.prev-date {
+			color: gray;
+		}
+
+		td.next-date {
+			color: gray;
+		}
+
+		td.current-date {
+			color: fuchsia;
+			background-color: yellow;
+		}
+
+		.calendar-container {
+			position: absolute;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+		}
+
+		.calendar-image {
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			z-index: -1;
+		}
+	</style>
+</head>
+
+<body>
+	<script>
+		function generateCalendar() {
+			var dateInput = prompt("Enter the date in the format day.month.year");
+			var dateParts = dateInput.split(".");
+			var day = parseInt(dateParts[0]);
+			var month = parseInt(dateParts[1]) - 1; // months are zero-based
+			var year = parseInt(dateParts[2]);
+
+			var currentDate = new Date(year, month, day);
+			var currentMonth = currentDate.getMonth();
+			var currentYear = currentDate.getFullYear();
+
+			var calendarContainer = document.createElement('div');
+			calendarContainer.className = 'calendar-container';
+
+			var calendarTable = document.createElement('table');
+			var headerRow = calendarTable.insertRow();
+			var monthCell = headerRow.insertCell();
+			monthCell.colSpan = 7;
+			monthCell.innerHTML = currentDate.toLocaleString('en-US', {
+				month: 'long',
+				year: 'numeric'
+			}).toUpperCase();
+			monthCell.className = 'header';
+
+			var daysRow = calendarTable.insertRow();
+			var days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+			for (var i = 0; i < days.length; i++) {
+				var dayCell = daysRow.insertCell();
+				dayCell.innerHTML = days[i];
+				if (i === 5 || i === 6) {
+					dayCell.className = 'weekend';
+				} else {
+					dayCell.className = 'weekday';
+				}
+			}
+
+			var firstDay = new Date(currentYear, currentMonth, 1).getDay(); // Sunday is 0, Monday is 1, ..., Saturday is 6
+			if (firstDay === 0) {
+				firstDay = 6; // Adjust Sunday to be the last day of the week (6)
+			} else {
+				firstDay = firstDay - 1; // Adjust the rest of the days to align with Monday as the first day of the week
+			}
+			var lastDay = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+			// Calculate the previous month
+			var prevMonth = currentMonth - 1;
+			var prevYear = currentYear;
+			if (prevMonth === -1) {
+				prevMonth = 11;
+				prevYear--;
+			}
+			var prevMonthLastDay = new Date(prevYear, prevMonth + 1, 0).getDate();
+
+			// Calculate the next month
+			var nextMonth = currentMonth + 1;
+			var nextYear = currentYear;
+			if (nextMonth === 12) {
+				nextMonth = 0;
+				nextYear++;
+			}
+
+			var calendarRow = calendarTable.insertRow();
+			var prevMonthDay = prevMonthLastDay - firstDay + 1;
+
+			// Fill the cells with days from the previous month
+			for (var i = 0; i < firstDay; i++) {
+				var dateCell = calendarRow.insertCell();
+				dateCell.innerHTML = prevMonthDay;
+				dateCell.className = 'prev-date';
+				prevMonthDay++;
+			}
+
+			// Populate the calendar with the days of the current month
+			var dayCount = 1;
+			for (var i = firstDay; i < 7; i++) {
+				var dateCell = calendarRow.insertCell();
+				dateCell.innerHTML = dayCount;
+				dateCell.className = 'date';
+				if (dayCount === day) {
+					dateCell.classList.add('current-date');
+					dateCell.style.backgroundColor = 'yellow'; // Set background color to yellow
+				}
+				dayCount++;
+			}
+
+			// Complete the rest of the calendar rows
+			while (dayCount <= lastDay) {
+				var row = calendarTable.insertRow();
+				for (var i = 0; i < 7; i++) {
+					if (dayCount <= lastDay) {
+						var dateCell = row.insertCell();
+						dateCell.innerHTML = dayCount;
+						dateCell.className = 'date';
+						if (dayCount === day) {
+							dateCell.classList.add('current-date');
+						}
+						dayCount++;
+					} else {
+						var nextMonthDateCell = row.insertCell();
+						nextMonthDateCell.innerHTML = dayCount - lastDay;
+						nextMonthDateCell.className = 'next-date';
+						dayCount++;
+					}
+				}
+			}
+
+			// Determine the season based on the current month
+			var season;
+			if (currentMonth >= 0 && currentMonth <= 1 || currentMonth === 11) {
+				season = '1'; // Winter
+			} else if (currentMonth >= 2 && currentMonth <= 4) {
+				season = '3'; // Spring
+			} else if (currentMonth >= 5 && currentMonth <= 7) {
+				season = '2'; // Summer
+			} else {
+				season = '4'; // Autumn
+			}
+
+			// Set the background image for the calendar container
+			calendarContainer.style.backgroundImage = 'url(seasons/' + season + '.jpg)';
+
+			// Append the calendar table to the calendar container
+			calendarContainer.appendChild(calendarTable);
+
+			// Append the calendar container to the body
+			document.body.appendChild(calendarContainer);
+		}
+
+		generateCalendar();
+	</script>
+</body>
+
+</html>
